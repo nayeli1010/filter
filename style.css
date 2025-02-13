@@ -1,0 +1,210 @@
+body {
+  background-image: url('img/fondo.jpg');
+  background-size: cover;
+}
+
+button {
+  height: 40px;
+  width: 100px;
+  font-size: x-large;
+  color: #b44e4e;
+}
+
+#serial {
+  font-size: x-large;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  margin-left: 10px;
+
+}
+
+#tesla {
+  position: absolute;
+  width: calc(5%);
+  height: calc(10%);
+  bottom: calc(82%);
+  left: calc(45%);
+  border-radius: 10px;
+
+}
+
+.animated-shadow {
+  color: #ece2e2;
+  font: normal 140px Varela Round, sans-serif;
+  position: absolute;
+  font-size: 80px;
+  letter-spacing: 5px;
+  text-align: center;
+  text-transform: uppercase;
+  left: 25%;
+  animation: move linear 5000ms infinite;
+  z-index: 2
+}
+
+/*Animación para rotar las sombras*/
+@keyframes move {
+  0% {
+    text-shadow:
+      4px -4px 0 #e84949,
+      3px -3px 0 #e84949,
+      2px -2px 0 #e84949,
+      1px -1px 0 #e84949,
+      -4px 4px 0 #086368,
+      -3px 3px 0 #086368,
+      -2px 2px 0 #086368,
+      -1px 1px 0 #086368;
+  }
+
+  15% {
+    text-shadow:
+      -4px -4px 0 #086368,
+      -3px -3px 0 #086368,
+      -2px -2px 0 #086368,
+      -1px -1px 0 #086368,
+      4px 4px 0 #e84949,
+      3px 3px 0 #e84949,
+      2px 2px 0 #e84949,
+      1px 1px 0 #e84949;
+  }
+
+  100% {
+    text-shadow:
+      4px -4px 0 #e84949,
+      3px -3px 0 #e84949,
+      2px -2px 0 #e84949,
+      1px -1px 0 #e84949,
+      -4px 4px 0 #086368,
+      -3px 3px 0 #086368,
+      -2px 2px 0 #086368,
+      -1px 1px 0 #086368;
+  }
+}
+
+#Captura {
+
+  background-color: rgb(176, 173, 173);
+  z-index: 2;
+  border-radius: 10%;
+  position: absolute;
+  top: 2%;
+  bottom: 5%;
+  left: 0.8%;
+  width: 1185px;
+  height: 560px;
+
+}
+
+.imageOverlay {
+
+  position: absolute;
+  top: 102%;
+  right: 80%;
+  display: flex;
+  justify-content: center;
+  width: 1450px;
+  height: 650px;
+  z-index: 900;
+}
+
+.highlighter {
+  background: rgb(58, 103, 157, 0.20);
+  border: 1px dashed #fff;
+  z-index: 2;
+  position: absolute;
+}
+
+.imageOverlay p {
+  position: absolute;
+  padding: 5px;
+  background-color: rgba(12, 4, 4, 0.85);
+  color: #FFF;
+  border: 1px dashed rgba(255, 255, 255, 0.7);
+  z-index: 2;
+  font-size: 10px;
+}
+
+#ialab {
+  position: absolute;
+  top: 86%;
+  right: 40%;
+}
+
+#sanmina {
+  position: absolute;
+  top: 86%;
+  right: 85%;
+}
+
+.tarjeta {
+  width: 1200px;
+  height: 580px;
+  top: 25%;
+  right: 35%;
+  background-color: #101010;
+  border-radius: 10%;
+  box-shadow: 16px 14px 20px #000000c8;
+  position: absolute;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.tarjeta::before {
+  content: "";
+  position: absolute;
+  width: 1300px;
+  height: 1500px;
+
+  background-image: conic-gradient(#0000ff 10deg, transparent 90deg, #0000ff 210deg, transparent 230deg);
+  animation: rotar 1.5s linear infinite;
+}
+
+.tarjeta::after {
+  content: "";
+  position: absolute;
+  width: 1185px;
+  height: 565px;
+  background-color: #101010;
+  border-radius: 10%;
+}
+
+.tarjeta2 {
+  z-index: 1;
+  width: 1200px;
+  height: 580px;
+  background-color: transparent;
+  border-radius: 10%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+@keyframes rotar {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+label {
+  display: flex;
+  /* align-items: center;*/
+  /* justify-content: center;*/
+  color: aqua;
+  margin: 0 auto;
+}
+
+select {
+  margin-bottom: 10px;
+  margin-top: 10px;
+
+}

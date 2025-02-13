@@ -1,0 +1,6 @@
+
+serial: 1234
+Point 1 Conector J4  = 0 --> Fail
+Point 2 Conector J2  = 0 --> Fail
+Point 3 Conector J8 = 0 --> Fail
+
