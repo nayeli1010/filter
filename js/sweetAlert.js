@@ -8,6 +8,6 @@ function failalert(){
 function passalert(){
     Swal.fire({
         icon: 'success',
-        title: 'Pass',
+        title: 'Ok',
     });
 }

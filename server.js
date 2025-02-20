@@ -32,6 +32,9 @@ var io = require('socket.io')(server); //Bind socket.io to our express server.
 io.on('connection', (socket) => {//Un Socket para todos los requerimientos a postgres
 
 	socket.on('picsaving', async function (dataURI, step, sn) { await savingpic(dataURI, step, sn); })
+	/*-socket.on('picsaving2',async function(dataURI,serial,sqty){
+		await savingpic2(dataURI,serial,sqty)*/
+	
 	socket.on('plc_response', function (result_matrix) { plcdatasender(result_matrix)/*console.log("soy result matrix: " + result_matrix)*/ });
 	socket.on('logsaving', async function (logarray, serial) {/*console.log('estoy en logsaving')*/await savinglog(logarray, serial) });
 	//socket renombrar carpeta
@@ -40,6 +43,7 @@ io.on('connection', (socket) => {//Un Socket para todos los requerimientos a pos
 	socket.on('fail42Q', async function (serialnumber, boxpoint) { console.log("Contactado fail"); await fail(serialnumber, boxpoint) })
 	socket.on('validation42Q', async function (serialnumber, csn) { console.log("Contactado validacion"); return a = await validation(serialnumber, csn) })
 	socket.on('workstation', function (serialnumber) { console.log("Contactado workstation"); workstation(serialnumber) })
+	socket.on('picsavingpruebas',async function(datauri,point,sn){await savingpicpruebas(datauri,point,sn);console.log("recibe: "+point)})
 
 });//Close io.on
 
@@ -48,7 +52,7 @@ io.on('connection', (socket) => {//Un Socket para todos los requerimientos a pos
 var net = require('net')
 var tcpipserver = net.createServer(function (connection) {
 	console.log('TCP client connected');
-	connection.write('Handshake ok!\n'); //cuando se conecte el server, manda este mensaje 
+	connection.write('Handshake ok!\n'); //cuando se conecte el server, manda este mensaje ---
 	connection.on('data', function (data) {
 		io.emit('Sequence_start', data.toString()); console.log("Analisis in process...");
 
@@ -94,11 +98,12 @@ tcpipserver.listen(40000, function () {
 })
 //-----* Guarda imagen desde URI
 async function savingpic(datauri, step, sn) {
+	//let serialCorto = sn.slice(20,36)
 	const ImageDataURI = require('image-data-uri');
 	const fs = require('fs');
 	return new Promise(async (resolve, reject) => {
 		try {
-			let filePath = 'C:/Users/nayeli_garcia/Desktop/FilterNew/Filter/samples/' + sn;
+			let filePath = 'C:/Users/gdl3_mds/myapp/FILTER/filter/samples/' + sn;
 			let filevalidation = fs.existsSync(filePath);
 
 			if (!filevalidation) {
@@ -118,12 +123,63 @@ async function savingpic(datauri, step, sn) {
 	});
 }
 
+async function savingpicpruebas(datauri,point,sn){
+	const ImageDataURI = require('image-data-uri');
+	const fs = require('fs');
+	return new Promise(async (resolve, reject) => {
+		try {
+			let filePath = 'C:/Users/gdl3_mds/myapp/FILTER/filter/samples-recortes/' + point+'';
+			let filevalidation = fs.existsSync(filePath);
+
+			if (!filevalidation) {
+				await fs.promises.mkdir(filePath);
+				console.log(`Directorio creado en ${filePath}`);
+			}
+
+			filePath += '/' + sn;
+			await ImageDataURI.outputFile(datauri, filePath);
+			console.log(`Imagen guardada en ${filePath}`);
+
+			resolve();
+		} catch (error) {
+			console.error("Error al guardar la imagen: " + error.message);
+			reject(error);
+		}
+	});
+
+}
+
+//-----* Guarda imagen desde URI
+/*async function savingpic2(datauri, serial,step) {
+	let filePath;
+	const ImageDataURI = require('image-data-uri')
+	return new Promise(async resolve =>{
+		let random = parseInt(Math.random()*200)
+		let filePath = 'C:/Users/gdl3_mds/myapp/FILTER/filter/samples-recortes/'+step+'';
+		let filevalidation = fs.existsSync(filePath);
+		if(filevalidation){
+			filePath = ''+filePath+'/'+random+'';
+			ImageDataURI.outputFile(datauri,filePath).then(res=>console.log(res));
+		}
+		else{
+			fs.mkdir(filePath,(error)=>{
+				if(error){
+					console.log(error.message);
+				}
+				filePath=''+filePath+'/'+random+'';
+				ImageDataURI.outputFile(datauri,filePath).then(res=>console.log(res))
+				console.log("Directorio creado")
+			});
+		}
+	})
+}*/
+
 /*Guarda el log*/
 async function savinglog(logarray, serial) {
 	return new Promise(async resolve => {
 
 		console.log("estoy dentro de savinglog")
-		let logpath = 'C:/Users/nayeli_garcia/Desktop/FilterNew/Filter/samples/' + serial + '/log.txt';
+		let logpath = 'C:/Users/gdl3_mds/myapp/FILTER/filter/samples/' + serial + '/log.txt';
 		//console.log("estoy en logsaving", logpath, serial)
 		fs.writeFile(logpath, logarray, function (err) {
 			if (err) throw err;
@@ -135,8 +191,8 @@ async function savinglog(logarray, serial) {
 async function renombraF(serial) {
 	return new Promise(async resolve => {
 		try {
-			fs.rename('C:/Users/nayeli_garcia/Desktop/FilterNew/Filter/samples/' + serial,
-				'C:/Users/nayeli_garcia/Desktop/FilterNew/Filter/samples/' + serial + '_F',
+			fs.rename('C:/Users/gdl3_mds/myapp/FILTER/filter/samples/' + serial,
+				'C:/Users/gdl3_mds/myapp/FILTER/filter/samples/' + serial + '_F',
 				function (err) {
 					if (err)
 						console.log("exitosamente guardada!!");

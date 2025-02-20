@@ -15,6 +15,14 @@ let coord2 = []
 let coord3 = []
 let coord4 = []
 let boxpoint = []
+let pn='LFTM113558-54-A' //'LFTM113558-16-B'
+const input = document.getElementById('serial')
+let serialInput 
+let serialCorto
+
+let elemento = document.getElementById("pn")
+elemento.textContent="PN INGRESADO: "+pn
+
 //**************************DECLARACION DE MODELOS
 let model = new cvstfjs.ObjectDetectionModel()
 let model2 = new cvstfjs.ClassificationModel()
@@ -31,7 +39,7 @@ let modelp4 = new cvstfjs.ObjectDetectionModel()
 let modelClasP1 = new cvstfjs.ClassificationModel()
 let modelClasP2 = new cvstfjs.ClassificationModel()
 let modelClasP3 = new cvstfjs.ClassificationModel()
-let modelClasP4 = new cvstfjs.ClassificationModel()
+let modelClasP3Nuevo = new cvstfjs.ClassificationModel()
 
 
 //*************************CARGAR MODELOS */
@@ -51,12 +59,12 @@ async function loadmodel() {
     await modelClasP1.loadModelAsync('./modelmcla/clasificacion/P1/modelnuevo/model.json');
     await modelClasP2.loadModelAsync('./modelmcla/clasificacion/P2/modelnuevo/model.json');
     await modelClasP3.loadModelAsync('./modelmcla/clasificacion/P3/model.json');
-    await modelClasP4.loadModelAsync('./modelmcla/clasificacion/P4/model.json');
+    await modelClasP3Nuevo.loadModelAsync('./modelmcla/clasificacion/P4/model.json');
 
 }
+
+
 loadmodel()
-
-
 //Variable camid para las camaras
 let camid
 var contenido
@@ -77,9 +85,20 @@ let recortito3 = document.getElementById('Canvascut3') //Canvas para el recorte 
 let recortito3ctx = recortito3.getContext('2d')
 let recortito4 = document.getElementById('Canvascut4') //Canvas para el recorte de P1 
 let recortito4ctx = recortito4.getContext('2d')
+
 /************************************************ canva de la imagen colocada*/
 let Captura = document.getElementById('Captura')
 let Capturactx = Captura.getContext('2d')
+
+// images = []
+// images.push(new Image())
+// images.push(new Image())
+// images.push(new Image())
+
+// images.forEach((element ,index)=> {
+//     element.src = "pruebas/"+(index+1)+".jpeg"
+// });
+
 //*************************Socket block */
 const socket = io();
 
@@ -103,26 +122,63 @@ socket.on('Sequence_start', function (infoplc) {//pg migrated
 /************************************************ llamada de las funciones de forma asincrona */
 async function Sequence() {
     //const selectedOption = document.getElementById("lang").value;
+    //P1545622-01-C:REV02:SANN23360000508
     boxpoint = []
     decision = []
-
+    ancho=[1176,1536,1222]
+    alto=[415,929,799]
+    x=[670,228,14]
+    y=[36,55,254]
+    console.log("serialInput: "+serialInput)
+    console.log("serial corto: ",serialCorto)
     for (point = 1; point < 4; point++) {
         await open_cam(point)
         console.log("estoy en la camara.. " + point)
         await captureimage()
+        //await snapshot(point,serialCorto)
         await predict1(point)
         await analisis(point)
+        
+        await snapshotRecorte(point,ancho[point-1],alto[point-1],x[point-1],y[point-1])
 
+        //await predict1(point)
+       //  await analisis(point)
+        // input.disabled = false
     }
-    evaluaArray()
-    await plc_response(boxpoint)
+    passalert()
+    // setTimeout(function fire() { location.reload() }, 2000);// temporizador para limpiar pantalla
+
+    // input.disabled = false
+    // input.focus()
+   
+    // evaluaArray()
+    // await plc_response(boxpoint)
 
 }
-//setTimeout(function fire() { location.reload() }, 8000);// temporizador para limpiar pantalla
+
+
+
+input.addEventListener('keypress', function(event){
+
+    // P1545622-01-C:REV02:SANN24313000E76
+    if(event.keyCode === 13){
+        serialInput = input.value
+        input.disabled = true
+        // serialCorto = serialInput.split(":")[2]
+        serialCorto = serialInput.slice(20,36)
+        console.log("serialInput: "+serialInput)
+        console.log("serial corto: ",serialCorto)
+        input.value  = ''
+        Sequence()
+        
+        // document.getElementById('serial').reset
+    }
+
+})
 
 //*************************FUNCIONES ANALISIS
-async function analisis(p) {
-    return new Promise(async resolve => { // inicio de promesa 
+async function analisis(p,step) {
+    return new Promise(async resolve => { // inicio de promesa --
 
         switch (p) {
             case 1://coordenadas P1
@@ -130,21 +186,27 @@ async function analisis(p) {
                 recortito1ctx.drawImage(fullimage, coord1[0], coord1[1], coord1[2], coord1[3], 0, 0, recortito1ctx.canvas.width, recortito1ctx.canvas.height) // coordenada y tamaño de recorte en el canvas
                 await mlinspector(recortito1, coord1[0], 1)
                 allpoints(1, statusf)
-                await snapshot(1, serial)
+                await snapshot(1)
+                console.log("serialInput: "+serialInput)
+                console.log("serial corto: ",serialCorto)
+                /*var dataURI = recortito1.toDataURL('image/jpeg')
+                savepic2(dataURI,step,serial)
+                console.log("entre a savepic2")*/
+              
                 coord1 = []
                 break
             case 2://P2
                 recortito2ctx.drawImage(fullimage, coord1[0], coord1[1], coord1[2], coord1[3], 0, 0, recortito2ctx.canvas.width, recortito2ctx.canvas.height) // coordenada y tamaño de recorte en el canvas
                 await mlinspector(recortito2, coord1[0], 2)
                 allpoints(2, statusf)
-                await snapshot(2, serial)
+                await snapshot(2)
                 coord1 = []
                 break
             case 3:
                 recortito3ctx.drawImage(fullimage, coord1[0], coord1[1], coord1[2], coord1[3], 0, 0, recortito3ctx.canvas.width, recortito3ctx.canvas.height) // coordenada y tamaño de recorte en el canvas
                 await mlinspector(recortito3, coord1[0], 3)
                 allpoints(3, statusf)
-                await snapshot(3, serial)
+                await snapshot(3)
 
                 coord1 = []
                 break
@@ -188,7 +250,7 @@ async function evaluaArray() {
 //****************************************** Backend call functions
 
 async function plcelevado() {
-    const socket = io();
+    // const socket = io();
     socket.emit('plc_response', resulstatus);
 }
 function resultado() {
@@ -206,7 +268,7 @@ function open_cam(point) {
         if (point == 1) { camid = "0d4ef669c86943cf67333c67e090812f1261ef5f2ba5d0470516193d0c66b1a5" }
         if (point == 2) { camid = "b3cc0e2eaafdd99e26e48ebd07fbd6d9bfa524e087a03179f346abcb403278b5" }
         if (point == 3) { camid = "b3cc0e2eaafdd99e26e48ebd07fbd6d9bfa524e087a03179f346abcb403278b5" }
-        if (point == 4) { camid = "b3cc0e2eaafdd99e26e48ebd07fbd6d9bfa524e087a03179f346abcb403278b5" }
+        // if (point == 4) { camid = "b3cc0e2eaafdd99e26e48ebd07fbd6d9bfa524e087a03179f346abcb403278b5" }
         const video = document.querySelector('video')
         const vgaConstraints = {
             video: {
@@ -251,14 +313,39 @@ function mapcams() {
 }
 /************************************************ Guardado de imagen */
 
-async function snapshot(step, serial) {
+async function snapshot(step) {
+    
     console.log('guardar la imagen en su carpeta.')
     return new Promise(async resolve => {
         var dataURI = fullimage.toDataURL('image/jpeg')
-        savepic(dataURI, step, serial) //savepic(dataURI,point);
+        savepic(dataURI, step) //savepic(dataURI,point);
         resolve('resolved')
     })
 }
+async function snapshotRecorte(point,ancho,alto,x,y){
+    return new Promise(async(resolve) => {
+        console.log("estoy en snapshorrecorte")
+           let tempCanvas = document.createElement('canvas');
+            
+            let tempCtx = tempCanvas.getContext('2d');
+
+            tempCanvas.width = ancho;
+            tempCanvas.height = alto;
+
+            tempCtx.drawImage(fullimage,x,y,ancho,alto,0,0,ancho,alto);
+            const dataURI = tempCanvas.toDataURL('image/jpg');
+            tempCanvas.remove();
+            
+           
+               await savingpicpruebas(dataURI,point,serialCorto)
+            
+        resolve("resolved")
+   });
+}
+ async function savingpicpruebas(uri,point,sn){
+    const socket = io();
+    socket.emit('picsavingpruebas',uri,point,sn)
+ }
 
 function stopcam() {
     return new Promise(async resolve => {
@@ -370,6 +457,11 @@ async function call(cut, array, pot) {
             result = await modelClasP2.executeAsync(cut)
             break
         case 3:
+            if(pn == 'LFTM113558-54-A' ){
+                console.log("estoy en el nuevo modelo")
+                result = await modelClasP3Nuevo.executeAsync(cut)
+            }
+            console.log("estoy en el numero de parte normal")
             result = await modelClasP3.executeAsync(cut)
             break
         case 4:
@@ -410,9 +502,17 @@ async function removeHighlights() {
 
 /************************************************ Conexion socket */
 
-function savepic(uri, point, snr) {
-    const socket = io();
-    socket.emit('picsaving', uri, point, snr);
+function savepic(uri, point) {
+    console.log("serialInput: "+serialInput)
+                console.log("serial corto: ",serialCorto)
+    // const socket = io();
+    socket.emit('picsaving', uri, point,serialCorto);
+
+}
+
+function savepic2(uri, point, snr) {
+    var random = Math.floor(Math.random()*1000)
+    socket.emit('picsaving2', uri, random,point);
 }
 async function renombra(serial) {
     return new Promise(async resolve => {
