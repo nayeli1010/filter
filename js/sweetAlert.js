@@ -1,13 +1,30 @@
-function failalert(){
-    Swal.fire({
-        icon: 'error',
-        title: 'Fail',
-    });
+
+async function failsweet(canvas,indices){
+  console.log("Aqui estoy en fail")
+  return new Promise(async resolve => {
+  Swal.fire({
+
+    title: "FAIL",
+    icon: "error",
+   
+    confirmButtonColor: "#CF010B",
+   
+  })
+
+})
+
 }
 
-function passalert(){
-    Swal.fire({
-        icon: 'success',
-        title: 'Ok',
-    });
+async function passsweet(){
+  return new Promise(async resolve => {
+  Swal.fire({
+
+    title: 'PASS',
+    icon: 'success',
+    
+    confirmButtonColor: "#2a2",
+    
+  })
+  resolve('resolved')
+})
 }

@@ -208,3 +208,8 @@ select {
   margin-top: 10px;
 
 }
+#contenedor {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
