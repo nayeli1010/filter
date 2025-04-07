@@ -1,0 +1,16 @@
+
+serial: 310107112
+Point 1-1 Insuficiencia Top J1-1 = 0 --> Fail
+Point 1-2 Insuficiencia Top J1-2 = 0 --> Fail
+Point 1-3 Exceso Top J1-1 = 0 --> Fail
+Point 1-4 Exceso Top J1-2 = 0 --> Fail
+Point 1-5 Daño Fisico J1 = 0 --> Fail
+Point 1-6 Ranuras J1 = 0 --> Fail
+Point 2-1 Daño Varistor Z6 = 0 --> Fail
+Point 3-1 = 0 --> Fail
+Point 3-2 Insuficiencia Bottom J1-1 = 0 --> Fail
+Point 3-3 Insuficiencia Bottom J1-2 = 0 --> Fail
+Point 3-4 Exceso Bottom J1-1 = 0 --> Fail
+Point 3-5 Exceso Bottom J1-2 = 0 --> Fail
+Point 4-1 Sin evidencia de pin = 0 --> Fail
+

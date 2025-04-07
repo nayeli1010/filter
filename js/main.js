@@ -19,6 +19,7 @@ let coords = {
     height: null,
     width: null
 }
+let statusPuntos = []
 let boxpoint = []
 let pn = 'LFTM113558-54-A' //'LFTM113558-16-B'
 let serialCorto
@@ -59,6 +60,7 @@ async function loadmodel() {
         clasificationModels.push(AClassModel)
 
     }
+
     // console.log(segmentationModels)
     // console.log(clasificationModels)
 
@@ -124,10 +126,22 @@ async function Sequence() {
     }
     console.log(boxpoint)
     await evaluaArray()
-    setTimeout(function fire() { location.reload() }, 2000);// temporizador para limpiar pantalla
-
+    query()
+    // setTimeout(function fire() { location.reload() }, 2000);// temporizador para limpiar pantalla
 }
-
+async function gopen() {
+    return new Promise(async resolve => {
+        const socket = io();
+        socket.emit('openClient')
+        setTimeout(function fire() { resolve('resolved') }, 1000)
+    })
+}
+async function query(){
+    await gopen()
+    const socket = io()
+    // socket.emit('openClient')
+    socket.emit('statusRegistrar', serialCorto, statusPuntos)
+}
 async function eliminarcoords(){
     return new Promise(async resolve => {
         coords.x = null
@@ -142,6 +156,7 @@ async function analisis(p,j) {
     return new Promise(async resolve => { // inicio de promesa --
         recortitosCtx[p - 1].drawImage(fullimage, coords.x, coords.y, coords.width, coords.height, 0, 0, recortitosCtx[p - 1].canvas.width, recortitosCtx[p - 1].canvas.height) // coordenada y tamaño de recorte en el canvas
         await mlinspector(recortitos[p - 1], p,j)
+        statusPuntos.push(statusf)
         boxpoint.push(statusf)// Array guarda el valor de cada punto analizado 
         resolve('resolved')
     })
@@ -151,6 +166,7 @@ async function evaluaArray() {
     return new Promise(async resolve => {
         console.log("evaluarray: boxpoint = ", boxpoint)
         let resultadofinal = boxpoint.some((e) => e == "0")
+        // console.log(resultadofinal+"AAAAAAAAAAAA")
         if (resultadofinal == false) {
             console.log(resultadofinal)
             await plc_response(resultadofinal)
@@ -286,7 +302,7 @@ async function predict(point,j) {
         // predictAnalisis(point)
         let input_size
         let image
-        console.log(segmentationModels)
+        console.log(segmentationModels[point-1][j-1])
         input_size = segmentationModels[point-1][j-1].input_size
         image = tf.browser.fromPixels(fullimage, 3)
         image = tf.image.resizeBilinear(image.expandDims(), [input_size, input_size])
@@ -381,9 +397,9 @@ async function savepic(uri, point) {
     })
 }
 
-async function renombra(serial) {
+async function renombra() {
     return new Promise(async resolve => {
-        socket.emit('renombrasnr', serial);
+        socket.emit('renombrasnr', serialCorto);
         resolve('resolved')
     });
 }
@@ -399,23 +415,29 @@ async function plc_response(resultado) { //El Array boxpoint guarda la equivalen
         console.log("plc_response: sn = ", serialCorto)
         let logarray =
             "\n" + "serial: " + serialCorto + "\n" +
-            "Point 1 Conector J4 " + " = " + boxpoint[0] + " --> " + `${boxpoint[0] == 0 ? 'Fail' : 'Pass'}` + "\n" +
-            "Point 2 Conector J2 " + " = " + boxpoint[1] + " --> " + `${boxpoint[1] == 0 ? 'Fail' : 'Pass'}` + "\n" +
-            "Point 3 Conector J8" + " = " + boxpoint[2] + " --> " + `${boxpoint[2] == 0 ? 'Fail' : 'Pass'}` + "\n" + "\n" + ""
-
-        boxpoint =
-            "&Point1" + "," + boxpoint[0] +
-            "&Point2" + "," + boxpoint[1] +
-            "&Point3" + "," + boxpoint[2] +
-            "#"
-
+            `Point 1-1 Insuficiencia Top J1-1 = ${boxpoint[0]} --> ` + `${boxpoint[0] == 0 ? 'Fail' : 'Pass'}` + "\n" +
+            `Point 1-2 Insuficiencia Top J1-2 = ${boxpoint[1]} --> ` + `${boxpoint[1] == 0 ? 'Fail' : 'Pass'}` + "\n" +
+            `Point 1-3 Exceso Top J1-1 = ${boxpoint[2]} --> ` + `${boxpoint[2] == 0 ? 'Fail' : 'Pass'}` + "\n" +
+            `Point 1-4 Exceso Top J1-2 = ${boxpoint[3]} --> ` + `${boxpoint[3] == 0 ? 'Fail' : 'Pass'}` + "\n" +
+            `Point 1-5 Daño Fisico J1 = ${boxpoint[4]} --> ` + `${boxpoint[4] == 0 ? 'Fail' : 'Pass'}` + "\n" +
+            `Point 1-6 Ranuras J1 = ${boxpoint[5]} --> ` + `${boxpoint[5] == 0 ? 'Fail' : 'Pass'}` + "\n" +
+            `Point 2-1 Daño Varistor Z6 = ${boxpoint[6]} --> ` + `${boxpoint[6] == 0 ? 'Fail' : 'Pass'}` + "\n" +
+            `Point 3-1 = ${boxpoint[7]} --> ` + `${boxpoint[7] == 0 ? 'Fail' : 'Pass'}` + "\n" +
+            `Point 3-2 Insuficiencia Bottom J1-1 = ${boxpoint[8]} --> ` + `${boxpoint[8] == 0 ? 'Fail' : 'Pass'}` + "\n" +
+            `Point 3-3 Insuficiencia Bottom J1-2 = ${boxpoint[9]} --> ` + `${boxpoint[9] == 0 ? 'Fail' : 'Pass'}` + "\n" +
+            `Point 3-4 Exceso Bottom J1-1 = ${boxpoint[10]} --> ` + `${boxpoint[10] == 0 ? 'Fail' : 'Pass'}` + "\n" +
+            `Point 3-5 Exceso Bottom J1-2 = ${boxpoint[11]} --> ` + `${boxpoint[11] == 0 ? 'Fail' : 'Pass'}` + "\n" +
+            `Point 4-1 Sin evidencia de pin = ${boxpoint[12]} --> ` + `${boxpoint[12] == 0 ? 'Fail' : 'Pass'}` + "\n" + "\n" + ""
+            // "Point 1 Conector J4 " + " = " + boxpoint[0] + " --> " + `${boxpoint[0] == 0 ? 'Fail' : 'Pass'}` + "\n" +
+            // "Point 2 Conector J2 " + " = " + boxpoint[1] + " --> " + `${boxpoint[1] == 0 ? 'Fail' : 'Pass'}` + "\n" +
+            // "Point 3 Conector J8" + " = " + boxpoint[2] + " --> " + `${boxpoint[2] == 0 ? 'Fail' : 'Pass'}` + "\n" + "\n" + ""
 
         console.log("soy boxpoint: " + boxpoint)
         await logsaving(logarray, serialCorto)
         console.log("estoy en logsaving")
 
         if (resultado) {
-            await renombra(serialCorto)
+            await renombra()
         }
 
         console.log("soy logarray: " + logarray)

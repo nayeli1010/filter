@@ -17,12 +17,28 @@ app.use(express.static(__dirname))//Carpeta de donde sirve / carpeta raiz public
 const server = app.listen(8888, () => {
 	console.log('Servidor web iniciado')
 })
-
+let cliente
+const { Pool } = require('pg');
+const pool = new Pool({
+    host: 'localhost',
+    user: 'postgres',
+    password: 'ialab',
+    database: 'ABL'
+});
 //-----* Filesystem module object
 const fs = require('fs')
 
 let https = require('http')
 
+async function openconnection() {
+    try{
+        cliente = await pool.connect()
+        console.log("Cliente conectado!!")
+    }
+    catch (error){
+        console.log(error)
+    }
+}
 //*--------------------------------TCP/IP PLC --------------------------------------------*/
 
 let io = require('socket.io')(server); //Bind socket.io to our express server.
@@ -32,15 +48,37 @@ io.on('connection', (socket) => {//Un Socket para todos los requerimientos a pos
 	socket.on('plc_response', function (result_matrix) { plcdatasender(result_matrix)/*console.log("soy result matrix: " + result_matrix)*/ });
 	socket.on('logsaving', async function (logarray, serial) {/*console.log('estoy en logsaving')*/await savinglog(logarray, serial) });
 	//socket renombrar carpeta
+	socket.on('openClient', async function () {await openconnection()})
 	socket.on('renombrasnr', async function (serial) { await renombraF(serial) });
 	socket.on('pass42Q', async function (serialnumber, boxpoint) { await pass(serialnumber, boxpoint) })
 	socket.on('fail42Q', async function (serialnumber, boxpoint) { console.log("Contactado fail"); await fail(serialnumber, boxpoint) })
 	socket.on('validation42Q', async function (serialnumber, csn) { console.log("Contactado validacion"); return a = await validation(serialnumber, csn) })
 	socket.on('workstation', function (serialnumber) { console.log("Contactado workstation"); workstation(serialnumber) })
 	socket.on('picsavingpruebas',async function(datauri,point,sn,j){await savingpicpruebas(datauri,point,sn,j);console.log("recibe: "+point)})
-
+	socket.on('statusRegistrar', async function(serial, status){await registrarStatus(serial, status)})
 });//Close io.on
 
+async function registrarStatus(serial, status){
+	let registro = "INSERT INTO abl_status VALUES ('" + serial
+	let date = new Date()
+    let time = String(date.getHours()) + ':' + String(date.getMinutes()) + ':' + String(date.getSeconds())
+    date = String(date.getFullYear()) + '-' + String(date.getMonth()+1) + '-' + String(date.getDay())
+
+	for(let i = 0; i<13;i++ ){
+        status[i] = Boolean(status[i])
+        status[i] = String(status[i])
+        registro += ("','"+status[i])
+    }
+    registro += ("','"+date)
+    registro += ("','"+time)
+    registro += "')"
+	cliente.query(registro, (err, result) => {
+        if (err) {
+            return console.error('Error executing query', err.stack)
+        }
+        console.log(result.rows)
+    })
+}
 //************************************************************** Server, espera algun dato de scanners para arranque de secuencia  */
 
 let net = require('net')
@@ -131,8 +169,9 @@ async function savinglog(logarray, serial) {
 	return new Promise(async resolve => {
 
 		console.log("estoy dentro de savinglog")
-		let logpath = 'C:/Users/gdl3_mds/myapp/FILTER/filter/muestras/' + serial + '/log.txt';
-		
+		let logpath = 'muestras/' + serial + '/log.txt';
+		// let logpath = 'C:/Users/gdl3_mds/myapp/FILTER/filter/muestras/' + serial + '/log.txt';
+		// fs.writeFile(logpath, logarray, function (err) {
 		fs.writeFile(logpath, logarray, function (err) {
 			if (err) throw err;
 
@@ -144,8 +183,10 @@ async function renombraF(serial) {
 	return new Promise(async resolve => {
 		
 		try {
-			fs.rename('C:/Users/gdl3_mds/myapp/FILTER/filter/muestras/' + serial,
-				'C:/Users/gdl3_mds/myapp/FILTER/filter/muestras/' + serial + '_F'+Math.floor(Math.random()*100),
+			fs.rename('muestras/' + serial,
+				'muestras/' + serial + '_F'+Math.floor(Math.random()*100),
+			// fs.rename('C:/Users/gdl3_mds/myapp/FILTER/filter/muestras/' + serial,
+			// 	'C:/Users/gdl3_mds/myapp/FILTER/filter/muestras/' + serial + '_F'+Math.floor(Math.random()*100),
 				function (err) {
 					if (err)
 						console.log("exitosamente guardada!!");
